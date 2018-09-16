@@ -4,9 +4,10 @@ Analysis of John Isner serve
 
 Questions to be answered:
 
-1. What is John's current service game hold percentage (2018)?
+1. What is John's service game hold percentage (2017)?
+0.87629136334525559
 
-2. How does this compare to his competitions (avg. 2018)
+2. How does this compare to his competitions (avg. 2017)
 
 3. What makes his serve such an effective weapon?
 
