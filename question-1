@@ -1,0 +1,71 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import tree
+from sklearn.ensemble import RandomForestRegressor
+
+#Opening the 2017 csv file 
+directory = "C://Users//Cheney//Desktop//tennis_atp-master//atp_matches_"
+df_2017 = pd.read_csv(directory+'2017.csv')
+
+#Locating all matches for which John Isner was listed as either the winner or loser. Combining these matches into a new dataframe
+isner_df_2017 = pd.concat([df_2017[df_2017.winner_id == isner_id] , df_2017[df_2017.loser_id == isner_id]])
+
+#Splitting the data into winners and losers so that we can find John Isner in each match and isolate his stats
+winners = isner_df_2017[['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level',
+       'tourney_date', 'match_num', 'winner_id', 'winner_seed', 'winner_entry',
+       'winner_name', 'winner_hand', 'winner_ht', 'winner_ioc', 'winner_age',
+       'winner_rank', 'winner_rank_points', 'score', 'best_of',
+       'round', 'minutes', 'w_ace', 'w_df', 'w_svpt', 'w_1stIn', 'w_1stWon',
+       'w_2ndWon', 'w_SvGms', 'w_bpSaved', 'w_bpFaced']]
+
+winners['wl'] = 'w'
+
+losers = isner_df_2017[['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level',
+       'tourney_date', 'match_num', 'loser_id', 'loser_seed',
+       'loser_entry', 'loser_name', 'loser_hand', 'loser_ht', 'loser_ioc',
+       'loser_age', 'loser_rank', 'loser_rank_points', 'score', 'best_of',
+       'round', 'minutes', 'l_ace', 'l_df',
+       'l_svpt', 'l_1stIn', 'l_1stWon', 'l_2ndWon', 'l_SvGms', 'l_bpSaved',
+       'l_bpFaced']]
+
+losers['wl'] = 'l'
+
+#Creating consistent column names for both the "winners" and "losers" dataframes so that they can be combined
+columns = ['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level',
+       'tourney_date', 'match_num', 'player_id', 'player_seed',
+       'player_entry', 'player_name', 'player_hand', 'player_ht', 'player_ioc',
+       'player_age', 'player_rank', 'player_rank_points', 'score', 'best_of',
+       'round', 'minutes', 'aces', 'double_faults',
+       'service_pts', '1st_serve_in', '1st_won', '2nd_won', 'service_gms', 'bp_saved',
+       'bp_faced', 'wl']
+winners.columns = columns
+losers.columns = columns
+
+#Combining the winners and losers
+new_df = pd.concat([winners,losers])
+
+#Only data from John Isner's performance
+new_new_df = new_df[new_df.player_id == isner_id]
+
+#Reseting index
+match_data_2017 = new_new_df.reset_index(drop=True)
+
+#Filling some missing data points
+match_data_2017.loc[27,'service_gms']=18
+match_data_2017.loc[10,'service_gms']=21            
+match_data_2017.loc[47,'service_gms']=22
+match_data_2017.loc[50,'service_gms']=28
+match_data_2017.loc[54,'service_gms']=16
+
+#Creating new column showing serve games lost
+match_data_2017['service_gms_lost'] = match_data_2017['bp_faced'] - match_data_2017['bp_saved']
+
+#Creating column for hold percentage
+match_data_2017['hold_pct'] = 1-(match_data_2017.service_gms_lost/match_data_2017.service_gms)
+
+#NaN showed up for isntances when there were zero service games lost. Hold percentage would be 1 in these cases.
+match_data_2017['hold_pct'].fillna(0, inplace=True)
+
+#Averaged hold percentage for all 2017 matches
+sum(match_data_2017.hold_pct)/60
