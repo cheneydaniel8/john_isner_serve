@@ -8,6 +8,8 @@ from sklearn.ensemble import RandomForestRegressor
 directory = "C://Users//Cheney//Desktop//tennis_atp-master//atp_matches_"
 df_2017 = pd.read_csv(directory+'2017.csv')
 
+isner_id = 104545
+
 #Locating all matches for which John Isner was listed as either the winner or loser. Combining these matches into a new dataframe
 isner_df_2017 = pd.concat([df_2017[df_2017.winner_id == isner_id] , df_2017[df_2017.loser_id == isner_id]])
 
