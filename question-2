@@ -2,12 +2,11 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-#from sklearn import tree
-#from sklearn.ensemble import RandomForestRegressor
-
 %matplotlib inline
 
+
 #Import the 2017 match data
+directory = "C://Users//Cheney//Desktop//tennis_atp-master//atp_matches_"
 df_2017 = pd.read_csv(directory+'2017.csv')
 
 #Split entries into winners and losers
