@@ -75,7 +75,7 @@ for player in players:
 player_hold_pct_df = pd.DataFrame(all_players).sort_values(by=['hold_pct'],ascending=False).reset_index(drop=True)
 
 #Used bar chart to demonstrate how John Isner's hold percentage ranks for the 2017 season.
-x_labels = (0.0,0.2,0.4,0.6,0.8,1.0)
+x_labels = ('0.0%','20.0%','40.0%','60.0%','80.0%','100.0%')
 x_positions = (0.0,0.2,0.4,0.6,0.8,1.0)
 y_labels = list(player_hold_pct_df.player_name)
 y_positions = list(range((len(player_hold_pct_df)*10),0,-10))
@@ -92,7 +92,7 @@ ax.set_yticklabels(y_labels)
 
 ax.xaxis.grid(True)
 
-ax.set_title('Hold Percentage',{'fontsize': 20})
+ax.set_title('2017 Service Game Hold Percentage',{'fontsize': 20})
 ax.set_xlabel('Percentage',{'fontsize': 15})
 ax.set_ylabel('Player',{'fontsize': 15})
 
