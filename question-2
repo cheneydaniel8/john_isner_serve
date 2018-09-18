@@ -1,0 +1,99 @@
+#Imports
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+
+
+#Import the 2017 match data
+directory = "C://Users//Cheney//Desktop//tennis_atp-master//atp_matches_"
+df_2017 = pd.read_csv(directory+'2017.csv')
+
+#Split entries into winners and losers
+winners = df_2017[['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level',
+       'tourney_date', 'match_num', 'winner_id', 'winner_seed', 'winner_entry',
+       'winner_name', 'winner_hand', 'winner_ht', 'winner_ioc', 'winner_age',
+       'winner_rank', 'winner_rank_points', 'score', 'best_of',
+       'round', 'minutes', 'w_ace', 'w_df', 'w_svpt', 'w_1stIn', 'w_1stWon',
+       'w_2ndWon', 'w_SvGms', 'w_bpSaved', 'w_bpFaced']].copy()
+
+winners['wl'] = 'w'
+
+losers = df_2017[['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level',
+       'tourney_date', 'match_num', 'loser_id', 'loser_seed',
+       'loser_entry', 'loser_name', 'loser_hand', 'loser_ht', 'loser_ioc',
+       'loser_age', 'loser_rank', 'loser_rank_points', 'score', 'best_of',
+       'round', 'minutes', 'l_ace', 'l_df',
+       'l_svpt', 'l_1stIn', 'l_1stWon', 'l_2ndWon', 'l_SvGms', 'l_bpSaved',
+       'l_bpFaced']].copy()
+
+losers['wl'] = 'l'
+
+#Establish consistent column names for both winners and losers, and then combine into one dataset.
+columns = ['tourney_id', 'tourney_name', 'surface', 'draw_size', 'tourney_level',
+       'tourney_date', 'match_num', 'player_id', 'player_seed',
+       'player_entry', 'player_name', 'player_hand', 'player_ht', 'player_ioc',
+       'player_age', 'player_rank', 'player_rank_points', 'score', 'best_of',
+       'round', 'minutes', 'aces', 'double_faults',
+       'service_pts', '1st_serve_in', '1st_won', '2nd_won', 'service_gms', 'bp_saved',
+       'bp_faced', 'wl']
+       
+winners.columns = columns
+losers.columns = columns
+
+df = pd.concat([winners,losers]).reset_index(drop=True)
+
+#Add a few data points
+df['service_gms_lost'] = df['bp_faced'] - df['bp_saved']
+df['hold_pct'] = 1-(df.service_gms_lost/df.service_gms)
+df['hold_pct'].fillna(0, inplace=True)
+
+#Some entries were missing data for total number of service games. Dropped these records.
+suspects = df.index[df['hold_pct'] == -np.inf].tolist()
+temp_df = df.drop(suspects).reset_index(drop=True)
+
+#Identified all of the players that played matches in 2017
+player_ids = list(temp_df.player_id)
+players = pd.unique(player_ids)
+
+#Created dataframe showing each player's average hold percentage for their 2017 season. Dropped all players that played less than 17 matches.
+match_nums=[]
+all_players=[]
+for player in players:
+    df_view = temp_df[temp_df['player_id']==player].reset_index(drop=True)
+    match_nums.append(len(df_view))
+    if len(df_view) > 16:
+        avg_hold_pct = np.average(df_view.hold_pct)
+        hold_percentages={}
+        hold_percentages['player_id'] = player
+        hold_percentages['player_name'] = df_view.loc[0,'player_name']
+        hold_percentages['hold_pct'] = avg_hold_pct
+        all_players.append(hold_percentages)
+    else:
+        continue
+        
+player_hold_pct_df = pd.DataFrame(all_players).sort_values(by=['hold_pct'],ascending=False).reset_index(drop=True)
+
+#Used bar chart to demonstrate how John Isner's hold percentage ranks for the 2017 season.
+x_labels = ('0.0%','20.0%','40.0%','60.0%','80.0%','100.0%')
+x_positions = (0.0,0.2,0.4,0.6,0.8,1.0)
+y_labels = list(player_hold_pct_df.player_name)
+y_positions = list(range((len(player_hold_pct_df)*10),0,-10))
+
+fig, ax = plt.subplots(figsize=(8,20))
+
+bars = ax.barh(y_positions,player_hold_pct_df['hold_pct'],7, align='center')
+bars[1].set_color('g')
+
+ax.set_xticks(x_positions)
+ax.set_xticklabels(x_labels)
+ax.set_yticks(y_positions)
+ax.set_yticklabels(y_labels)
+
+ax.xaxis.grid(True)
+
+ax.set_title('2017 Service Game Hold Percentage',{'fontsize': 20})
+ax.set_xlabel('Percentage',{'fontsize': 15})
+ax.set_ylabel('Player',{'fontsize': 15})
+
+plt.tight_layout()
